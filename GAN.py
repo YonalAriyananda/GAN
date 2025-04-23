@@ -1,22 +1,34 @@
 import os
+import datasets
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
+import matplotlib.pyplot as plt
+from torchvision import datasets
 
 
 
-class Generator(nn.module):
+class Generator(nn.Module):
+
+    def __init__(self):
+        self.n = 5
 
 
 
-class Discriminator(nn.module):
+class Discriminator(nn.Module):
+
+    def __init__(self):
+        self.n = 5
 
 
 
 class Trainer():
+
+    def __init__(self):
+        self.n = 5
 
 
 class Data():         # Class that contains the functionality for loading and normalising the data ready for training the model.
@@ -60,4 +72,29 @@ class Data():         # Class that contains the functionality for loading and no
     
 
 def main():
+    x = 3
     return x
+
+if __name__ == '__main__':
+
+# Example parameters
+ image_directory = r"C:\Users\yonal\Downloads\Prog black 2\GAN\DogPics"  # Make sure this folder has subdirectories with images
+ image_size = 64
+ batch_size = 16
+ num_workers = 2
+
+# Create the Data object
+ data_loader_obj = Data(directory=image_directory,
+                       image_size=image_size,
+                       batch_size=batch_size,
+                       num_of_workers=num_workers)
+
+# Get the DataLoader
+ dataloader = data_loader_obj.get_dataloader()
+
+# Iterate over the DataLoader
+ for batch_idx, (images, labels) in enumerate(dataloader):
+    print(f"Batch {batch_idx + 1}")
+    print(f"Images shape: {images.shape}")
+    print(f"Labels: {labels}")
+    break  # remove this to test the full dataset
