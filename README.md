@@ -24,3 +24,5 @@ Next steps to do
 - Generator and discriminator functions.
 - Training model
 - Main loop
+
+REMEMBER TO USE DCGAN ARCHITECHTURE
