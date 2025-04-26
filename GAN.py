@@ -20,8 +20,45 @@ class Generator(nn.Module):
 
 class Discriminator(nn.Module):
 
-    def __init__(self):
-        self.n = 5
+    def __init__(self,channels = 3, feature_maps = 64):
+        super().__init__()
+        self.model = nn.Sequential(
+
+            nn.Conv2d(channels, feature_maps, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.LeakyReLU(0.2, inplace = True),
+
+            nn.Conv2d(feature_maps, feature_maps*2,kernel_size=4,stride = 2, padding=1, bias = False),
+            nn.BatchNorm2d(feature_maps * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # Output: (feature_maps*2) x 16 x 16
+            nn.Conv2d(feature_maps * 2, feature_maps * 4, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(feature_maps * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # Output: (feature_maps*4) x 8 x 8
+            nn.Conv2d(feature_maps * 4, feature_maps * 8, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(feature_maps * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # Output: (feature_maps*8) x 4 x 4
+            nn.Conv2d(feature_maps * 8, 1, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.Sigmoid()
+            # Output: 1 x 1 x 1 (realness score)
+            )
+        
+
+    def forward(self, x):
+        
+        output = self.model(x)
+        return output.view(-1,1).squeeze(1)
+    
+
+
+        
+
+
+        
 
 
 
@@ -76,25 +113,15 @@ def main():
     return x
 
 if __name__ == '__main__':
+    batch_size = 16
+channels = 3
+image_size = 64
+fake_images = torch.randn(batch_size, channels, image_size, image_size)
 
-# Example parameters
- image_directory = r"C:\Users\yonal\Downloads\Prog black 2\GAN\DogPics"  # Make sure this folder has subdirectories with images
- image_size = 64
- batch_size = 16
- num_workers = 2
+# Initialize Discriminator
+D = Discriminator(channels=3, feature_maps=64)
 
-# Create the Data object
- data_loader_obj = Data(directory=image_directory,
-                       image_size=image_size,
-                       batch_size=batch_size,
-                       num_of_workers=num_workers)
-
-# Get the DataLoader
- dataloader = data_loader_obj.get_dataloader()
-
-# Iterate over the DataLoader
- for batch_idx, (images, labels) in enumerate(dataloader):
-    print(f"Batch {batch_idx + 1}")
-    print(f"Images shape: {images.shape}")
-    print(f"Labels: {labels}")
-    break  # remove this to test the full dataset
+# Pass images through Discriminator
+outputs = D(fake_images)
+print(outputs.shape)   # Should print: torch.Size([16])
+print(outputs)      
