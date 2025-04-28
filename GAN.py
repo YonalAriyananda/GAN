@@ -13,8 +13,34 @@ from torchvision import datasets
 
 class Generator(nn.Module):
 
-    def __init__(self):
-        self.n = 5
+    
+    def __init__(self, latent_dim=100, channels=3, feature_maps=64):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.ConvTranspose2d(latent_dim, feature_maps * 8, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(feature_maps * 8),
+            nn.ReLU(True),
+
+            nn.ConvTranspose2d(feature_maps * 8, feature_maps * 4, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(feature_maps * 4),
+            nn.ReLU(True),
+
+            nn.ConvTranspose2d(feature_maps * 4, feature_maps * 2, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(feature_maps * 2),
+            nn.ReLU(True),
+
+            nn.ConvTranspose2d(feature_maps * 2, feature_maps, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(feature_maps),
+            nn.ReLU(True),
+
+            nn.ConvTranspose2d(feature_maps, channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.Tanh()  
+        )
+
+    def forward(self, z):
+        output = self.model(z)
+        return output
+
 
 
 
@@ -108,20 +134,14 @@ class Data():         # Class that contains the functionality for loading and no
 
     
 
-def main():
-    x = 3
-    return x
-
 if __name__ == '__main__':
-    batch_size = 16
-channels = 3
-image_size = 64
-fake_images = torch.randn(batch_size, channels, image_size, image_size)
+   G = Generator(latent_dim=100, channels=3, feature_maps=64)
 
-# Initialize Discriminator
-D = Discriminator(channels=3, feature_maps=64)
 
-# Pass images through Discriminator
-outputs = D(fake_images)
-print(outputs.shape)   # Should print: torch.Size([16])
-print(outputs)      
+   noise = torch.randn(16, 100, 1, 1)
+
+
+   fake_images = G(noise)
+
+   print(fake_images.shape)       
+ 
