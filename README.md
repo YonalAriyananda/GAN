@@ -27,4 +27,4 @@ Next steps to do
 - Training model
 - Main loop
 
-REMEMBER TO USE DCGAN ARCHITECHTURE
+REMEMBER TO USE DCGAN ARCHITECHTURE - https://deus-ex-machina-ism.com/?p=74473&lang=en
