@@ -8,32 +8,33 @@ import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 import matplotlib.pyplot as plt
 from torchvision import datasets
+from torchvision.utils import save_image
 
 
 
 class Generator(nn.Module):
 
     
-    def __init__(self, latent_dim=100, channels=3, feature_maps=64):
+    def __init__(self, latent_dim=100, channels=3, no_of_fm=128):
         super().__init__()
         self.model = nn.Sequential(
-            nn.ConvTranspose2d(latent_dim, feature_maps * 8, kernel_size=4, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(feature_maps * 8),
+            nn.ConvTranspose2d(latent_dim, no_of_fm * 8, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(no_of_fm * 8),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(feature_maps * 8, feature_maps * 4, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(feature_maps * 4),
+            nn.ConvTranspose2d(no_of_fm * 8, no_of_fm * 4, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(no_of_fm * 4),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(feature_maps * 4, feature_maps * 2, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(feature_maps * 2),
+            nn.ConvTranspose2d(no_of_fm * 4, no_of_fm * 2, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(no_of_fm * 2),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(feature_maps * 2, feature_maps, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(feature_maps),
+            nn.ConvTranspose2d(no_of_fm * 2, no_of_fm, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(no_of_fm),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(feature_maps, channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.ConvTranspose2d(no_of_fm, channels, kernel_size=4, stride=2, padding=1, bias=False),
             nn.Tanh()  
         )
 
@@ -46,31 +47,31 @@ class Generator(nn.Module):
 
 class Discriminator(nn.Module):
 
-    def __init__(self,channels = 3, feature_maps = 64):
+    def __init__(self,channels = 3, no_of_fm = 128):
         super().__init__()
         self.model = nn.Sequential(
 
-            nn.Conv2d(channels, feature_maps, kernel_size = 4, stride = 2, padding = 1, bias = False),
+            nn.Conv2d(channels, no_of_fm, kernel_size = 4, stride = 2, padding = 1, bias = False),
             nn.LeakyReLU(0.2, inplace = True),
 
-            nn.Conv2d(feature_maps, feature_maps*2,kernel_size=4,stride = 2, padding=1, bias = False),
-            nn.BatchNorm2d(feature_maps * 2),
+            nn.Conv2d(no_of_fm, no_of_fm*2,kernel_size=4,stride = 2, padding=1, bias = False),
+            nn.BatchNorm2d(no_of_fm * 2),
             nn.LeakyReLU(0.2, inplace=True),
 
-            # Output: (feature_maps*2) x 16 x 16
-            nn.Conv2d(feature_maps * 2, feature_maps * 4, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(feature_maps * 4),
+            
+            nn.Conv2d(no_of_fm * 2, no_of_fm * 4, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(no_of_fm * 4),
             nn.LeakyReLU(0.2, inplace=True),
 
-            # Output: (feature_maps*4) x 8 x 8
-            nn.Conv2d(feature_maps * 4, feature_maps * 8, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(feature_maps * 8),
+           
+            nn.Conv2d(no_of_fm * 4, no_of_fm * 8, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(no_of_fm * 8),
             nn.LeakyReLU(0.2, inplace=True),
 
-            # Output: (feature_maps*8) x 4 x 4
-            nn.Conv2d(feature_maps * 8, 1, kernel_size=4, stride=1, padding=0, bias=False),
+            
+            nn.Conv2d(no_of_fm * 8, 1, kernel_size=4, stride=1, padding=0, bias=False),
             nn.Sigmoid()
-            # Output: 1 x 1 x 1 (realness score)
+            
             )
         
 
@@ -88,10 +89,8 @@ class Discriminator(nn.Module):
 
 
 
-class Trainer():
 
-    def __init__(self):
-        self.n = 5
+
 
 
 class Data():         # Class that contains the functionality for loading and normalising the data ready for training the model.
@@ -135,13 +134,83 @@ class Data():         # Class that contains the functionality for loading and no
     
 
 if __name__ == '__main__':
-   G = Generator(latent_dim=100, channels=3, feature_maps=64)
 
+   epochs = 500
+   batch_size = 128   
+   image_size = 64
+   latent_dim = 100
+   lr = 0.0002
+     
+   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-   noise = torch.randn(16, 100, 1, 1)
-
-
-   fake_images = G(noise)
-
-   print(fake_images.shape)       
+   image_directory = r"C:\Users\yonal\Downloads\Prog black 2\GAN\DogPics"  # Make sure this folder has subdirectories with images
+   image_size = 64
+   batch_size = 16
+   num_workers = 2
  
+ # Create the Data object
+   data_loader_obj = Data(directory=image_directory,
+                        image_size=image_size,
+                        batch_size=batch_size,
+                        num_of_workers=num_workers)
+ 
+ # Get the DataLoader
+   dataloader = data_loader_obj.get_dataloader()
+
+   G = Generator(latent_dim=latent_dim,channels=3, no_of_fm=128).to(device)
+   D = Discriminator(channels=3,no_of_fm=128).to(device)
+
+   Loss = nn.BCELoss()
+   G_optim = optim.Adam(G.parameters(), lr = lr, betas = (0.5,0.999))
+   D_optim = optim.Adam(D.parameters(), lr = lr, betas = (0.5,0.999))
+
+   os.makedirs("generated_images", exist_ok=True)
+
+   for epoch in range(epochs):
+        for batch_idx, (real_images, _) in enumerate(dataloader):
+            real_images = real_images.to(device)
+            batch_size = real_images.size(0)
+
+            # Real and Fake labels
+            real_labels = torch.full((batch_size,),0.9, device=device)
+            fake_labels = torch.zeros(batch_size, device=device)
+
+            # === Train Discriminator ===
+            outputs_real = D(real_images).view(-1)
+            loss_real = Loss(outputs_real, real_labels)
+
+            noise = torch.randn(batch_size, latent_dim, 1, 1, device=device)
+            fake_images = G(noise)
+
+            outputs_fake = D(fake_images.detach()).view(-1)
+            loss_fake = Loss(outputs_fake, fake_labels)
+
+            loss_D = loss_real + loss_fake
+
+            D_optim.zero_grad()
+            loss_D.backward()
+            D_optim.step()
+
+            # === Train Generator ===
+            noise = torch.randn(batch_size, latent_dim, 1, 1, device=device)
+            fake_images = G(noise)
+            outputs = D(fake_images).view(-1)
+
+            loss_G = Loss(outputs, real_labels)
+
+            G_optim.zero_grad()
+            loss_G.backward()
+            G_optim.step()
+
+            # Print Losses occasionally
+            if batch_idx % 100 == 0:
+                print(f"Epoch [{epoch}/{epochs}] Batch {batch_idx}/{len(dataloader)} \
+                      Loss D: {loss_D:.4f}, Loss G: {loss_G:.4f}")
+
+        # Save generated samples after each epoch
+        with torch.no_grad():
+            fixed_noise = torch.randn(64, latent_dim, 1, 1, device=device)
+            fake_images = G(fixed_noise)
+            save_image(fake_images, f"generated_images/fake_images_epoch_{epoch+1}.png", normalize=True)
+
+   print("Training Complete 🚀")

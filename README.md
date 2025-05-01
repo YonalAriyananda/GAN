@@ -17,12 +17,14 @@ Steps Complete:
 - Downloaded and uploaded Dog dataset.
 - Completed basic class template.
 - Made the Data class and the pre processing data function.
+- Discriminator class
+
 
 
 Next steps to do
 
-- Generator and discriminator functions.
+- Generator functions.
 - Training model
 - Main loop
 
-REMEMBER TO USE DCGAN ARCHITECHTURE
+REMEMBER TO USE DCGAN ARCHITECHTURE - https://deus-ex-machina-ism.com/?p=74473&lang=en
